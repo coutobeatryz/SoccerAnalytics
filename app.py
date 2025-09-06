@@ -13,10 +13,8 @@ PESO_H2H = 0.40
 PESO_FASE = 0.35
 PESO_TABELA = 0.25
 
-# --- INICIALIZAÇÃO DO FLASK ---
 app = Flask(__name__)
 
-# --- FUNÇÕES DE BUSCA NA API ---
 def get_standings(competition_code):
     try:
         url = f"{BASE_URL}/competitions/{competition_code}/standings"
@@ -62,7 +60,6 @@ def get_top_scorers(competition_code, limit=5):
     except requests.exceptions.RequestException:
         return []
 
-# --- FUNÇÕES DE ANÁLISE ---
 def analyze_stats(team_id, matches):
     if not matches:
         return {"jogos_analisados": 0, "gols_marcados": 0, "gols_sofridos": 0, "vitorias": 0, "empates": 0, "derrotas": 0, "taxa_vitoria": 0, "gols_marcados_ht": 0, "gols_sofridos_ht": 0}
@@ -87,7 +84,7 @@ def analyze_stats(team_id, matches):
             if home_score > away_score: v += 1
             elif home_score == away_score: e += 1
             else: d += 1
-        else: # is_away
+        else: 
             gm += away_score; gs += home_score
             if away_score_ht is not None: gm_ht += away_score_ht; gs_ht += home_score_ht
             if away_score > home_score: v += 1
@@ -119,7 +116,6 @@ def run_full_analysis(team1_name, team2_name):
     finished_h2h = [m for m in h2h_matches if m['status'] == 'FINISHED'][-5:]
     t1_stats_h2h = analyze_stats(team1_info['id'], finished_h2h)
     
-    # Inverte as estatísticas do H2H para o time 2
     num_h2h = t1_stats_h2h.get('jogos_analisados', 0)
     t2_stats_h2h = {
         "vitorias": t1_stats_h2h['derrotas'], "derrotas": t1_stats_h2h['vitorias'],
@@ -166,10 +162,9 @@ def run_full_analysis(team1_name, team2_name):
         "top_scorers": top_scorers
     }
 
-# --- ROTAS DO SERVIDOR ---
 @app.route("/")
 def index():
-    top_scorers = get_top_scorers(COMPETITION_CODE) # Busca os artilheiros
+    top_scorers = get_top_scorers(COMPETITION_CODE)
     return render_template('index.html', top_scorers=top_scorers)
 
 @app.route("/analyze")
@@ -182,7 +177,7 @@ def analyze():
     if "error" in data:
         return jsonify(data), 404
     return jsonify(data)
-
-# --- INICIA O SERVIDOR ---
+    
 if __name__ == "__main__":
+
     app.run(debug=True)
