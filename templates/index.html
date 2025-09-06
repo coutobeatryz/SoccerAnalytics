@@ -207,7 +207,6 @@
             }, 50);
         };
 
-        // Função principal para atualizar toda a interface
         function updateUI(data) {
             document.getElementById('prob-team1').textContent = `${data.probabilities.team1_win}%`;
             document.getElementById('prob-draw').textContent = `${data.probabilities.draw}%`;
@@ -248,7 +247,6 @@
             }
         }
 
-        // Evento de clique no botão "ANALISAR"
         analyzeBtn.addEventListener('click', async () => {
             const team1 = team1Input.value.trim();
             const team2 = team2Input.value.trim();
@@ -288,4 +286,5 @@
         });
     </script>
 </body>
+
 </html>
