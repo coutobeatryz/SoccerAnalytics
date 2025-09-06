@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Análise Tática</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='%23dbe2f1' d='M50,1A49,49,0,1,0,99,50,49.05,49.05,0,0,0,50,1Zm0,92A43,43,0,1,1,93,50,43.05,43.05,0,0,1,50,93Z'/><path fill='%23dbe2f1' d='M50,15.1a3.5,3.5,0,0,0-2.43,1L37.2,26.46l-11.45,3.3a3.5,3.5,0,0,0-2.4,4.45l5.1,10.51-8,8.85A3.5,3.5,0,0,0,21,60.8l9.7,6.86-1.5,11.72a3.5,3.5,0,0,0,3.56,3.8l11.72-1.5,6.86,9.7A3.5,3.5,0,0,0,59.2,90l8.85-8,10.51,5.1a3.5,3.5,0,0,0,4.45-2.4l3.3-11.45L96,52.43a3.5,3.5,0,0,0-1-4.83l-10-7.39,3.3-11.45a3.5,3.5,0,0,0-2.4-4.45L75.4,19.25l-7.39-10A3.5,3.5,0,0,0,63.18,7l-9.7,6.86-11.72-1.5A3.5,3.5,0,0,0,50,15.1Z'/></svg>">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Russo+One&display=swap');
+        :root {
+            --background-color: #101118; --container-bg: rgba(23, 25, 38, 0.7);
+            --grid-color: rgba(200, 220, 255, 0.05); --text-color: #dbe2f1;
+            --text-muted: #6b7790; --border-color: rgba(107, 119, 144, 0.25);
+            --team-a-color: #00e5ff; --team-a-glow: rgba(0, 229, 255, 0.5);
+            --team-b-color: #ff007a; --team-b-glow: rgba(255, 0, 122, 0.5);
+            --draw-color: #ffc400; --draw-glow: rgba(255, 196, 0, 0.5);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Roboto Mono', monospace; background-color: var(--background-color);
+            color: var(--text-color); display: flex; justify-content: center;
+            align-items: center; min-height: 100vh; padding: 2rem;
+            background-image: repeating-linear-gradient(var(--grid-color) 0 1px, transparent 1px 100%),
+                              repeating-linear-gradient(90deg, var(--grid-color) 0 1px, transparent 1px 100%);
+            background-size: 30px 30px;
+        }
+        .main-container { width: 100%; max-width: 1200px; display: flex; flex-direction: column; gap: 2rem; }
+        .setup-section, .top-scorers-section {
+            background: var(--container-bg); border: 1px solid var(--border-color);
+            border-radius: 12px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1.5rem;
+        }
+        .input-row { display: flex; gap: 1rem; align-items: center; }
+        .input-field {
+            flex-grow: 1; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color);
+            color: var(--text-color); padding: 0.75rem 1rem; border-radius: 6px;
+            font-family: 'Roboto Mono', monospace; font-size: 1rem;
+        }
+        .input-field:focus { outline: 1px solid var(--team-a-color); }
+        .analyze-button {
+            background: transparent; border: 1px solid var(--team-a-color); color: var(--team-a-color);
+            padding: 0.75rem 1.5rem; border-radius: 6px; font-family: 'Russo One', sans-serif;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .analyze-button:hover:not(:disabled) { background: var(--team-a-glow); color: var(--background-color); }
+        .analyze-button:disabled { cursor: not-allowed; opacity: 0.5; }
+        .prediction-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+        .prediction-card {
+            background: rgba(0,0,0,0.2); border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 1rem; text-align: center;
+        }
+        .prediction-card .percentage { font-size: 2rem; font-family: 'Russo One', sans-serif; margin-bottom: 0.25rem; }
+        .prediction-card .label { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); }
+        .prediction-card.team-a .percentage { color: var(--team-a-color); }
+        .prediction-card.team-a { border-color: var(--team-a-color); box-shadow: 0 0 10px var(--team-a-glow); }
+        .prediction-card.team-b .percentage { color: var(--team-b-color); }
+        .prediction-card.team-b { border-color: var(--team-b-color); box-shadow: 0 0 10px var(--team-b-glow); }
+        .prediction-card.draw .percentage { color: var(--draw-color); }
+        .prediction-card.draw { border-color: var(--draw-color); box-shadow: 0 0 10px var(--draw-glow); }
+        .match-container {
+            background: var(--container-bg); border: 1px solid var(--border-color);
+            border-radius: 12px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            display: grid; grid-template-columns: 1fr auto 1fr;
+            align-items: center; padding: 2.5rem 3rem;
+        }
+        .team-panel { display: flex; flex-direction: column; gap: 1.5rem; }
+        .team-panel.team-a { align-items: flex-end; text-align: right; }
+        .team-panel.team-b { align-items: flex-start; text-align: left; }
+        .team-logo { width: 100px; height: 100px; border-radius: 50%; padding: 0.5rem; background-color: rgba(255,255,255,0.05); }
+        .team-panel.team-a .team-logo { border: 2px solid var(--team-a-color); }
+        .team-panel.team-b .team-logo { border: 2px solid var(--team-b-color); }
+        .team-name { font-family: 'Russo One', sans-serif; font-size: 2.5rem; text-transform: uppercase; line-height: 1.1; }
+        .team-position { font-family: 'Roboto Mono', monospace; font-size: 1rem; color: var(--text-muted); }
+        .team-panel.team-a .team-name { color: var(--team-a-color); }
+        .team-panel.team-b .team-name { color: var(--team-b-color); }
+        .stats-column { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; padding: 0 3rem; }
+        .analysis-title { font-family: 'Russo One', sans-serif; font-size: 1.2rem; color: var(--text-muted); text-transform: uppercase; }
+        .stats-subtitle { border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; width: 100%; text-align: center; }
+        .stat-comparison { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+        .stat-label { font-size: 0.9rem; font-weight: 700; color: var(--text-muted); }
+        .comparison-bar-container { display: flex; align-items: center; width: 100%; }
+        .bar-container { display:flex; width:100%; background: rgba(0,0,0,0.2); border-radius: 4px; overflow:hidden; }
+        .bar { height: 8px; transition: width 0.5s ease-in-out; }
+        .bar.team-a { background-color: var(--team-a-color); box-shadow: 0 0 10px var(--team-a-glow); }
+        .bar.team-b { background-color: var(--team-b-color); box-shadow: 0 0 10px var(--team-b-glow); }
+        .stat-value { padding: 0 1rem; font-weight: 700; font-size: 1.2rem; }
+        .stat-value.team-a { color: var(--team-a-color); }
+        .stat-value.team-b { color: var(--team-b-color); }
+        .scorer-item { display: grid; grid-template-columns: 1fr auto; align-items: baseline; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); }
+        .scorer-item:last-child { border-bottom: none; }
+        .scorer-name { font-size: 1rem; }
+        .scorer-team { font-size: 0.8rem; color: var(--text-muted); }
+        .scorer-goals { font-size: 1.2rem; font-weight: 700; color: var(--draw-color); justify-self: end; }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <section class="setup-section">
+            <div class="input-row">
+                <input type="text" class="input-field" id="team1-input" value="Flamengo">
+                <input type="text" class="input-field" id="team2-input" value="Corinthians">
+                <button class="analyze-button" id="analyze-btn">ANALISAR</button>
+            </div>
+            <div class="prediction-cards">
+                <div class="prediction-card team-a"> <div class="percentage" id="prob-team1">- %</div> <div class="label">Vitória</div> </div>
+                <div class="prediction-card draw"> <div class="percentage" id="prob-draw">- %</div> <div class="label">Empate</div> </div>
+                <div class="prediction-card team-b"> <div class="percentage" id="prob-team2">- %</div> <div class="label">Vitória</div> </div>
+            </div>
+        </section>
+        <div class="match-container">
+            <div class="team-panel team-a">
+                <img src="https://via.placeholder.com/100" alt="Logo Time A" class="team-logo" id="team1-logo">
+                <div>
+                    <h2 class="team-name" id="team1-name">Time A</h2>
+                    <div class="team-position" id="team1-position">Aguardando análise...</div>
+                </div>
+            </div>
+            <div class="stats-column">
+                <h3 class="analysis-title">Análise Comparativa</h3>
+                <div class="stats-subtitle">CONFRONTO DIRETO (H2H)</div>
+                <div class="stat-comparison">
+                    <div class="stat-label">Vitórias</div>
+                    <div class="comparison-bar-container">
+                        <span class="stat-value team-a" id="stat-confronto_direto-vitorias1">0</span>
+                        <div class="bar-container">
+                            <div class="bar team-a" id="bar-confronto_direto-vitorias1" style="width: 50%;"></div>
+                            <div class="bar team-b" id="bar-confronto_direto-vitorias2" style="width: 50%;"></div>
+                        </div>
+                        <span class="stat-value team-b" id="stat-confronto_direto-vitorias2">0</span>
+                    </div>
+                </div>
+                <div class="stat-comparison">
+                    <div class="stat-label">Gols Marcados</div>
+                    <div class="comparison-bar-container">
+                        <span class="stat-value team-a" id="stat-confronto_direto-gols_marcados1">0</span>
+                        <div class="bar-container">
+                            <div class="bar team-a" id="bar-confronto_direto-gols_marcados1" style="width: 50%;"></div>
+                            <div class="bar team-b" id="bar-confronto_direto-gols_marcados2" style="width: 50%;"></div>
+                        </div>
+                        <span class="stat-value team-b" id="stat-confronto_direto-gols_marcados2">0</span>
+                    </div>
+                </div>
+                <div class="stats-subtitle" style="margin-top: 1rem;">FASE ATUAL (ÚLTIMOS JOGOS)</div>
+                <div class="stat-comparison">
+                    <div class="stat-label">Vitórias</div>
+                    <div class="comparison-bar-container">
+                        <span class="stat-value team-a" id="stat-fase_atual-vitorias1">0</span>
+                        <div class="bar-container">
+                            <div class="bar team-a" id="bar-fase_atual-vitorias1" style="width: 50%;"></div>
+                            <div class="bar team-b" id="bar-fase_atual-vitorias2" style="width: 50%;"></div>
+                        </div>
+                        <span class="stat-value team-b" id="stat-fase_atual-vitorias2">0</span>
+                    </div>
+                </div>
+                <div class="stat-comparison">
+                    <div class="stat-label">Gols Marcados</div>
+                    <div class="comparison-bar-container">
+                        <span class="stat-value team-a" id="stat-fase_atual-gols_marcados1">0</span>
+                        <div class="bar-container">
+                            <div class="bar team-a" id="bar-fase_atual-gols_marcados1" style="width: 50%;"></div>
+                            <div class="bar team-b" id="bar-fase_atual-gols_marcados2" style="width: 50%;"></div>
+                        </div>
+                        <span class="stat-value team-b" id="stat-fase_atual-gols_marcados2">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="team-panel team-b">
+                <img src="https://via.placeholder.com/100" alt="Logo Time B" class="team-logo" id="team2-logo">
+                <div>
+                    <h2 class="team-name" id="team2-name">Time B</h2>
+                    <div class="team-position" id="team2-position">Aguardando análise...</div>
+                </div>
+            </div>
+        </div>
+        <section class="top-scorers-section">
+            <h3 class="analysis-title">Goleadores do Campeonato</h3>
+            <div id="top-scorers-list">
+                <p style="text-align: center; color: var(--text-muted);">Aguardando análise...</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const team1Input = document.getElementById('team1-input');
+        const team2Input = document.getElementById('team2-input');
+        const matchContainer = document.getElementById('match-container');
+        const topScorersSection = document.getElementById('top-scorers-section');
+
+        // Função auxiliar para atualizar as barras e valores
+        const updateStatElements = (type, stat, team1Val, team2Val) => {
+            const total = team1Val + team2Val;
+            const bar1 = document.getElementById(`bar-${type}-${stat}1`);
+            const bar2 = document.getElementById(`bar-${type}-${stat}2`);
+
+            document.getElementById(`stat-${type}-${stat}1`).textContent = team1Val;
+            document.getElementById(`stat-${type}-${stat}2`).textContent = team2Val;
+            
+            bar1.style.width = '0%'; 
+            bar2.style.width = '0%';
+            
+            setTimeout(() => {
+                bar1.style.width = total > 0 ? `${(team1Val / total) * 100}%` : '50%';
+                bar2.style.width = total > 0 ? `${(team2Val / total) * 100}%` : '50%';
+            }, 50);
+        };
+
+        // Função principal para atualizar toda a interface
+        function updateUI(data) {
+            document.getElementById('prob-team1').textContent = `${data.probabilities.team1_win}%`;
+            document.getElementById('prob-draw').textContent = `${data.probabilities.draw}%`;
+            document.getElementById('prob-team2').textContent = `${data.probabilities.team2_win}%`;
+            
+            document.getElementById('team1-name').textContent = data.team1.name;
+            document.getElementById('team2-name').textContent = data.team2.name;
+            document.getElementById('team1-position').textContent = `${data.team1.position}º na Tabela`;
+            document.getElementById('team2-position').textContent = `${data.team2.position}º na Tabela`;
+            document.getElementById('team1-logo').src = data.team1.crest || 'https://via.placeholder.com/100';
+            document.getElementById('team2-logo').src = data.team2.crest || 'https://via.placeholder.com/100';
+
+            const h2h = data.stats.confronto_direto;
+            updateStatElements('confronto_direto', 'vitorias', h2h.team1.vitorias, h2h.team2.vitorias);
+            updateStatElements('confronto_direto', 'gols_marcados', h2h.team1.gols_marcados, h2h.team2.gols_marcados);
+            
+            const fase = data.stats.fase_atual;
+            updateStatElements('fase_atual', 'vitorias', fase.team1.vitorias, fase.team2.vitorias);
+            updateStatElements('fase_atual', 'gols_marcados', fase.team1.gols_marcados, fase.team2.gols_marcados);
+
+            const scorersList = document.getElementById('top-scorers-list');
+            scorersList.innerHTML = '';
+            if (data.top_scorers && data.top_scorers.length > 0) {
+                data.top_scorers.forEach(scorer => {
+                    const item = document.createElement('div');
+                    item.className = 'scorer-item';
+                    item.innerHTML = `
+                        <div>
+                            <div class="scorer-name">${scorer.name}</div>
+                            <div class="scorer-team">${scorer.team}</div>
+                        </div>
+                        <div class="scorer-goals">${scorer.goals} Gols</div>
+                    `;
+                    scorersList.appendChild(item);
+                });
+            } else {
+                scorersList.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Não foi possível carregar os artilheiros.</p>';
+            }
+        }
+
+        // Evento de clique no botão "ANALISAR"
+        analyzeBtn.addEventListener('click', async () => {
+            const team1 = team1Input.value.trim();
+            const team2 = team2Input.value.trim();
+
+            if (!team1 || !team2) {
+                alert('Por favor, digite o nome dos dois times.');
+                return;
+            }
+
+            analyzeBtn.disabled = true;
+            analyzeBtn.textContent = 'ANALISANDO...';
+            
+            document.getElementById('prob-team1').textContent = '- %';
+            document.getElementById('prob-draw').textContent = '- %';
+            document.getElementById('prob-team2').textContent = '- %';
+            document.getElementById('team1-position').textContent = 'Analisando...';
+            document.getElementById('team2-position').textContent = 'Analisando...';
+            document.getElementById('top-scorers-list').innerHTML = '<p style="text-align: center; color: var(--text-muted);">Carregando...</p>';
+
+            try {
+                const response = await fetch(`/analyze?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Ocorreu um erro na análise.');
+                }
+                
+                updateUI(data);
+            } catch (error) {
+                alert(`Erro: ${error.message}`);
+                document.getElementById('team1-position').textContent = 'Erro';
+                document.getElementById('team2-position').textContent = 'Erro';
+            } finally {
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = 'ANALISAR';
+            }
+        });
+    </script>
+</body>
+</html>
