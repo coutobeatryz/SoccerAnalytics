@@ -63,14 +63,8 @@ Para executar este projeto localmente, siga os passos abaixo.
 
 2.  **Crie e ative um ambiente virtual (recomendado):**
     ```bash
-    # Para Windows
     python -m venv venv
     .\venv\Scripts\activate
-
-    # Para macOS/Linux
-    python3 -m venv venv
-    source venv/bin/activate
-    ```
 
 3.  **Instale as dependências:**
     O projeto depende das bibliotecas `Flask` e `requests`. Instale-as com o seguinte comando:
@@ -82,7 +76,6 @@ Para executar este projeto localmente, siga os passos abaixo.
     Abra o arquivo `app.py` em um editor de texto e substitua o valor da variável `API_KEY` pela sua chave obtida no site `football-data.org`.
 
     ```python
-    # Linha 7 do arquivo app.py
     API_KEY = "SUA_CHAVE_DE_API_AQUI"
     ```
 
